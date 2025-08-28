@@ -7,39 +7,90 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <style>
         body {
-            background-color: #f8f9fa;
+            /* Added a subtle gradient background */
+            background: linear-gradient(to right top, #e6e9f0, #eef1f5);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            min-height: 100vh;
         }
-        .container {
-            margin-top: 50px;
+        .card {
+            border: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-radius: 12px;
+            margin-bottom: 2rem;
+        }
+        .card-header {
+            background-color: #fff;
+            border-bottom: 1px solid #e9ecef;
+            font-size: 1.25rem;
+            font-weight: 600;
         }
         .result-box {
-            background-color: #ffffff;
+            background-color: #f8f9fa;
             padding: 20px;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+            min-height: 200px;
+            white-space: pre-wrap; /* Ensures text wraps */
+            word-wrap: break-word;
         }
-        img {
+        .uploaded-img {
             max-width: 100%;
             height: auto;
-            margin-bottom: 20px;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+        }
+        .btn-secondary {
+            font-weight: 600;
         }
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="container mt-5">
+        <h1 class="text-center mb-4">Extraction Result</h1>
         <div class="row">
             <div class="col-md-6">
-                <h2>Uploaded Image</h2>
-                <img src="{{ url_for('uploaded_file', filename=filename) }}" alt="Uploaded Image">
+                <div class="card">
+                    <div class="card-header">Uploaded Image</div>
+                    <div class="card-body text-center">
+                        <img src="{{ url_for('uploaded_file', filename=filename) }}" alt="Uploaded Image" class="uploaded-img">
+                    </div>
+                </div>
             </div>
             <div class="col-md-6">
-                <h2>Extracted Text</h2>
-                <div class="result-box">
-                    <pre>{{ text }}</pre>
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        Extracted Text
+                        <button class="btn btn-sm btn-outline-secondary" onclick="copyText()">Copy</button>
+                    </div>
+                    <div class="card-body">
+                        <pre id="extracted-text" class="result-box">{{ text }}</pre>
+                    </div>
                 </div>
             </div>
         </div>
-        <a href="/" class="btn btn-secondary mt-3">Try another image</a>
+        <div class="text-center">
+            <a href="/" class="btn btn-secondary mt-3">Try another image</a>
+        </div>
     </div>
-</head>
+
+    <script>
+        function copyText() {
+            // Get the text from the pre element
+            var textToCopy = document.getElementById('extracted-text').innerText;
+            
+            // Use the modern clipboard API
+            navigator.clipboard.writeText(textToCopy).then(function() {
+                // Success feedback
+                var copyButton = document.querySelector('.btn-outline-secondary');
+                copyButton.innerText = 'Copied!';
+                setTimeout(function() {
+                    copyButton.innerText = 'Copy';
+                }, 2000); // Reset button text after 2 seconds
+            }, function(err) {
+                // Error feedback
+                console.error('Could not copy text: ', err);
+            });
+        }
+    </script>
+</body>
 </html>

@@ -2,37 +2,93 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <meta name = "viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>Textify - Image Text Extractor</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <style>
         body {
-            background-color: #f8f9fa;
+            background-color: #f0f2f5;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
         }
-        .container {
-            max-width: 600px;
-            margin-top: 50px;
+        .card {
+            border: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-radius: 12px;
+        }
+        .card-header {
+            background-color: #fff;
+            border-bottom: none;
+            font-size: 1.5rem;
+            font-weight: 600;
+            text-align: center;
+            padding-top: 1.5rem;
+        }
+        .custom-file-label::after {
+            content: "Browse";
+        }
+        .btn-primary {
+            background-color: #007bff;
+            border-color: #007bff;
+            font-weight: 600;
+            padding: 0.75rem 1.25rem;
+            border-radius: 8px;
+        }
+        .spinner-border {
+            width: 1.5rem;
+            height: 1.5rem;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1 class="text-center">Upload an Image to Extract Text</h1>
-        <form method="post enctype=multipart/form-data">
-            <div class="form-group">
-                <input type=file name=file class="form-control-file">
+    <div class="container" style="max-width: 500px; margin-top: 80px;">
+        <div class="card p-4">
+            <div class="card-header">
+                Textify
             </div>
-            <button type=submit class="btn btn-primary btn-block">Upload and Extract</button>
-        </form>
-        {% with messages = get_flashed_messages() %}
-          {% if messages %}
-            <div class="alert alert-danger mt3">
-                {% for message in messages %}
-                  <p>{{ message }}</p>
-                {% endfor %}
+            <div class="card-body">
+                <p class="text-center text-muted mb-4">Upload an image to extract its text.</p>
+                <form id="upload-form" method=post enctype=multipart/form-data>
+                    <div class="custom-file mb-4">
+                        <input type="file" class="custom-file-input" id="customFile" name="file" onchange="updateLabel(this)">
+                        <label class="custom-file-label" for="customFile">Choose file</label>
+                    </div>
+                    <button id="submit-btn" type="submit" class="btn btn-primary btn-block">
+                        Upload and Extract
+                    </button>
+                    <div id="loading-spinner" class="text-center mt-3" style="display: none;">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="sr-only">Loading...</span>
+                        </div>
+                        <p class="mt-2">Extracting text, please wait...</p>
+                    </div>
+                </form>
+                {% with messages = get_flashed_messages() %}
+                  {% if messages %}
+                    <div class="alert alert-danger mt-3">
+                      {% for message in messages %}
+                        <p class="mb-0">{{ message }}</p>
+                      {% endfor %}
+                    </div>
+                  {% endif %}
+                {% endwith %}
             </div>
-          {% endif %}
-        {% endwith %}
+        </div>
     </div>
+
+    <script>
+        function updateLabel(input) {
+            var fileName = input.files[0].name;
+            var label = input.nextElementSibling;
+            label.innerText = fileName;
+        }
+
+        document.getElementById('upload-form').addEventListener('submit', function() {
+            // Check if a file is selected
+            if (document.getElementById('customFile').files.length > 0) {
+                document.getElementById('submit-btn').style.display = 'none';
+                document.getElementById('loading-spinner').style.display = 'block';
+            }
+        });
+    </script>
 </body>
 </html>
