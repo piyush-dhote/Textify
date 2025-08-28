@@ -1,34 +1,32 @@
+# app.py
 import os
-from flask import Flask, render_template, request, redirect, url_for,flash
+from flask import Flask, render_template, request, redirect, url_for, flash
 from werkzeug.utils import secure_filename
 from PIL import Image
 import pytesseract
 
+# Configure the Flask application
 app = Flask(__name__)
 
+# Configuration for file uploads
 UPLOAD_FOLDER = 'uploads'
-
-ALLOWED_EXTENSIONS = {'png', 'jpeg', 'jpg', 'gif'}
-
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16 MB max file size
 app.secret_key = 'supersecretkey'
 
-# checking if file extension is allowed
+# Function to check if the file extension is allowed
 def allowed_file(filename):
     return '.' in filename and \
-        filename.rsplit('.',1)[1].lower in ALLOWED_EXTENSIONS
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-# Route for the main page
 @app.route('/', methods=['GET', 'POST'])
 def upload_file():
     if request.method == 'POST':
-        # Check if the post request has the file part
         if 'file' not in request.files:
             flash('No file part')
             return redirect(request.url)
         file = request.files['file']
-        # If the user does not select a file, the browser submits an empty file without a filename.
         if file.filename == '':
             flash('No selected file')
             return redirect(request.url)
@@ -36,29 +34,42 @@ def upload_file():
             filename = secure_filename(file.filename)
             filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
             file.save(filepath)
-
-            # Perform OCR on the uploaded image
+            
             try:
-                text = pytesseract.image_to_string(Image.open(filepath))
+                # --- OPTIMIZATION START ---
+                # Open the image file
+                img = Image.open(filepath)
+
+                # 1. Convert to grayscale - simplifies the image
+                img = img.convert('L')
+
+                # 2. Resize if the image is very large
+                MAX_WIDTH = 1600
+                if img.width > MAX_WIDTH:
+                    scaling_factor = MAX_WIDTH / img.width
+                    new_height = int(img.height * scaling_factor)
+                    img = img.resize((MAX_WIDTH, new_height), Image.LANCZOS)
+
+                # Perform OCR on the pre-processed image
+                text = pytesseract.image_to_string(img)
+                # --- OPTIMIZATION END ---
+
             except Exception as e:
                 flash(f'Error processing image: {e}')
                 return redirect(request.url)
-
-            # Render the result template with the extracted text and image filename
+                
             return render_template('result.html', text=text, filename=filename)
-
-    return render_template('index.html')
     
+    return render_template('index.html')
+
 # Route to serve uploaded files
-@app.route('/uploads/<filname>')
+@app.route('/uploads/<filename>')
 def uploaded_file(filename):
-    # route to display uploaded image on result page 
     from flask import send_from_directory
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
-# main application 
+# Main entry point for the application
 if __name__ == '__main__':
-    # creating upload directory if it doesn't exist 
     if not os.path.exists(UPLOAD_FOLDER):
         os.makedirs(UPLOAD_FOLDER)
     app.run(debug=True)
