@@ -1,0 +1,9 @@
+# Ignore the folder where user images are saved
+uploads/
+
+# Ignore Python's temporary cache files
+__pycache__/
+
+# Ignore virtual environment folder (if you use one)
+venv/
+*.pyc
